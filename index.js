@@ -4,7 +4,8 @@ const connectDB = require("./config/db");
 const errorHandler = require("./middleWare/errorHandler");
 const encodeData = require("./middleWare/encodeDataMiddleware");
 const Constant = require("./utils/constant");
-// require("./utils/cron-jobs");
+require("./utils/cron-jobs");
+const cors = require("cors");
 
 const port = Constant.PORT;
 
@@ -13,6 +14,7 @@ const app = express();
 connectDB();
 
 app.use(express.json());
+app.use(cors());
 app.use(encodeData);
 
 app.use("/api/users", require("./routes/userRoutes"));
