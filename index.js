@@ -2,9 +2,7 @@ const express = require("express");
 require("dotenv").config();
 const connectDB = require("./config/db");
 const errorHandler = require("./middleWare/errorHandler");
-const encodeData = require("./middleWare/encodeDataMiddleware");
 const Constant = require("./utils/constant");
-require("./utils/cron-jobs");
 const cors = require("cors");
 
 const port = Constant.PORT;
@@ -15,7 +13,6 @@ connectDB();
 
 app.use(express.json());
 app.use(cors());
-app.use(encodeData);
 
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/tasks", (req, res) => {

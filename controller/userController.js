@@ -1,12 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
-const {
-  accessToken,
-  refreshToken,
-  gettingValueFromRedis,
-  settingValueToRedis,
-} = require("../utils/utils");
+const { accessToken } = require("../utils/utils");
 const constant = require("../utils/constant");
 
 const getUsers = asyncHandler(async (req, res) => {
@@ -81,7 +76,11 @@ const updateUser = asyncHandler(async (req, res) => {
     dob: updatedUser.dob,
   };
 
-  res.status(200).json({ success: true, data: userUpdated, msg: "User updated successfully" });
+  res.status(200).json({
+    success: true,
+    data: userUpdated,
+    msg: "User updated successfully",
+  });
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
@@ -116,113 +115,21 @@ const login = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       dob: user.dob,
-      tokens: {
-        accessToken: accessToken(user._id),
-        refreshToken: refreshToken(user._id),
-      },
+      accessToken: accessToken(user._id),
     };
-    let allTokens = [];
-
-    allTokens = await gettingValueFromRedis("refreshTokensList");
-
-    if (allTokens == null) {
-      allTokens = [];
-    }
-    allTokens.push(payLoad.tokens.refreshToken);
-    settingValueToRedis("refreshTokensList", allTokens);
-    res.status(200).json({ success: true, data: payLoad });
+    res
+      .status(200)
+      .json({ success: true, data: payLoad, msg: "Login Successfull" });
   } else {
     res.status(400);
     throw new Error("Inavlid email or password");
   }
 });
 
-const updateUserToken = asyncHandler(async (req, res) => {
-  const { user } = req;
-
-  const { refreshTokenFE } = req.body;
-
-  if (!refreshTokenFE) {
-    res.status(401);
-    throw new Error("Please fill all required parameters");
-  }
-
-  let allTokens = [];
-
-  allTokens = await gettingValueFromRedis("refreshTokensList");
-
-  if (allTokens == null) {
-    allTokens = [];
-  }
-
-  if (allTokens.length && !allTokens.includes(refreshTokenFE)) {
-    res.status(401);
-    throw new Error("Not authorized, Invalid token");
-  }
-
-  const comparingTokenInRedis = allTokens.findIndex((token, index) => {
-    return token === refreshTokenFE;
-  });
-
-  // Check if the token was found
-  if (comparingTokenInRedis !== -1) {
-    const updatedToken = refreshToken(user._id);
-    allTokens[comparingTokenInRedis] = updatedToken;
-    settingValueToRedis("refreshTokensList", allTokens);
-
-    const payLoad = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      dob: user.dob,
-      tokens: {
-        accessToken: accessToken(user._id),
-        refreshToken: updatedToken,
-      },
-    };
-
-    res.status(200).json({ success: true, data: payLoad });
-  } else {
-    res.status(401);
-    throw new Error("Not authorized, Invalid token");
-  }
-});
-
-const logOut = asyncHandler(async (req, res) => {
-  const { refreshTokenFE } = req.body;
-
-  if (!refreshTokenFE) {
-    res.status(401);
-    throw new Error(constant.REQUIRED_FIELD_TEXT);
-  }
-
-  let allTokens = [];
-
-  allTokens = await gettingValueFromRedis("refreshTokensList");
-
-  if (allTokens == null) {
-    allTokens = [];
-  }
-
-  if (allTokens.length && !allTokens.includes(refreshTokenFE)) {
-    res.status(401);
-    throw new Error("Not authorized, Invalid token");
-  }
-
-  const comparingTokenInRedis = allTokens.findIndex((token, index) => {
-    return token === refreshTokenFE;
-  });
-
-  // Check if the token was found
-  if (comparingTokenInRedis !== -1) {
-    allTokens.splice(comparingTokenInRedis, 1);
-    settingValueToRedis("refreshTokensList", allTokens);
-
-    res.status(200).json({ success: true, msg: "User logout successfully" });
-  } else {
-    res.status(401);
-    throw new Error("Not authorized, Invalid token");
-  }
-});
-
-module.exports = { getUsers, addUser, updateUser, deleteUser, login, updateUserToken, logOut };
+module.exports = {
+  getUsers,
+  addUser,
+  updateUser,
+  deleteUser,
+  login,
+};
