@@ -20,9 +20,9 @@ const getUsers = asyncHandler(async (req, res) => {
 const addUser = asyncHandler(async (req, res) => {
   const { name, email, password, dob } = req.body;
 
-  if (!name || !email || !password || !dob) {
+  if (!name || !email || !password) {
     res.status(400);
-    throw new Error(constant.REQUIRED_FIELD_TEXT);
+    throw new Error("Please Fill all required fields");
   }
 
   const isEmail = await User.findOne({ email: email });
@@ -39,6 +39,7 @@ const addUser = asyncHandler(async (req, res) => {
     email: email,
     password: hashPassword,
     dob: dob,
+    role: "user",
   });
 
   res.status(200).json({ success: true, msg: "User created successfully" });
@@ -115,6 +116,7 @@ const login = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       dob: user.dob,
+      role: user.role,
       accessToken: accessToken(user._id),
     };
     res
