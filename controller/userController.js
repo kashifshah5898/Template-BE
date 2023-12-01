@@ -40,6 +40,8 @@ const addUser = asyncHandler(async (req, res) => {
     password: hashPassword,
     dob: dob,
     role: "user",
+    profilePicture: "global.png",
+    following: [],
   });
 
   res.status(200).json({ success: true, msg: "User created successfully" });
@@ -47,8 +49,7 @@ const addUser = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async (req, res) => {
   const { id } = req.query;
-  const { name, email, dob } = req.body;
-
+  const { name, email, dob, role, profilePicture, following } = req.body;
   if (!id) {
     res.status(400);
     throw new Error(constant.REQUIRED_FIELD_TEXT);
@@ -66,6 +67,9 @@ const updateUser = asyncHandler(async (req, res) => {
       name: name || isUser.name,
       email: email || isUser.email,
       dob: dob || isUser.dob,
+      role: role || isUser.role,
+      profilePicture: profilePicture || "global.png",
+      following: following || isUser.following,
     },
     { new: true }
   );
@@ -75,6 +79,9 @@ const updateUser = asyncHandler(async (req, res) => {
     name: updatedUser.name,
     email: updatedUser.email,
     dob: updatedUser.dob,
+    role: updatedUser.role,
+    profilePicture: updatedUser.profilePicture,
+    following: updatedUser.following,
   };
 
   res.status(200).json({
@@ -82,6 +89,32 @@ const updateUser = asyncHandler(async (req, res) => {
     data: userUpdated,
     msg: "User updated successfully",
   });
+});
+
+const updateUserPassword = asyncHandler(async (req, res) => {
+  const { userId, oldPassword, newPassword } = req.body;
+
+  if (!userId || !oldPassword || !newPassword) {
+    res.status(400);
+    throw new Error("Fill all required fields");
+  }
+
+  const findUser = await User.findById(userId);
+  const isTrue = await bcrypt.compare(oldPassword, findUser.password);
+
+  if (!isTrue) {
+    res.status(400);
+    throw new Error("Old password is incorrect");
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+  const updateUser = await User.findByIdAndUpdate(userId, {
+    password: hashedPassword,
+  });
+
+  res.status(200).json({ success: true, msg: "Password updated successfully" });
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
@@ -117,6 +150,8 @@ const login = asyncHandler(async (req, res) => {
       email: user.email,
       dob: user.dob,
       role: user.role,
+      profilePicture: user.profilePicture,
+      following: user.following,
       accessToken: accessToken(user._id),
     };
     res
@@ -134,4 +169,5 @@ module.exports = {
   updateUser,
   deleteUser,
   login,
+  updateUserPassword,
 };

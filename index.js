@@ -4,20 +4,22 @@ const connectDB = require("./config/db");
 const errorHandler = require("./middleWare/errorHandler");
 const Constant = require("./utils/constant");
 const cors = require("cors");
+const fileUpload = require("express-fileupload");
 
 const port = Constant.PORT;
 
 const app = express();
 
 connectDB();
-
+app.use(fileUpload());
 app.use(express.json());
 app.use(cors());
 
 app.use("/api/users", require("./routes/userRoutes"));
-app.use("/api/tasks", (req, res) => {
-  res.status(200).json({ msg: "Will maintain tasks over here" });
-});
+app.use("/api/uploads", require("./routes/uploadRoutes"));
+
+app.use("/api/assets", express.static("assets"));
+
 app.use("*", (req, res) => {
   res.status(400);
   throw new Error("Endpoint not found");
