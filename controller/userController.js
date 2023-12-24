@@ -56,6 +56,7 @@ const addUser = asyncHandler(async (req, res) => {
     profilePicture: "global.png",
     followMe: [],
     iFollow: [],
+    likedSongs: []
   });
 
   res.status(200).json({ success: true, msg: "User created successfully" });
@@ -85,7 +86,7 @@ const updateUser = asyncHandler(async (req, res) => {
       role: role || isUser.role,
       profilePicture: profilePicture || "global.png",
       followMe: followMe || isUser?.followMe || [],
-      followMe: iFollow || isUser?.followMe || [],
+      iFollow: iFollow || isUser?.iFollow || [],
     },
     { new: true }
   );
@@ -105,6 +106,183 @@ const updateUser = asyncHandler(async (req, res) => {
     success: true,
     data: userUpdated,
     msg: "User updated successfully",
+  });
+});
+
+const disLikeSong = asyncHandler(async (req, res) => {
+  const { songId, disLikedBy } = req.body
+
+  if (!songId || !disLikedBy) {
+    res.status(400);
+    throw new Error(constant.REQUIRED_FIELD_TEXT);
+  }
+
+  const isUser = await User.findById(disLikedBy);
+  if (!isUser) {
+    res.status(400);
+    throw new Error(`User not found`);
+  }
+
+  let allLikedSongs = isUser?.likedSongs ? isUser?.likedSongs : [];
+  let songIndex = allLikedSongs.indexOf(songId);
+
+  if (songIndex !== -1) {
+    allLikedSongs.splice(songIndex, 1)
+  }
+
+
+  const updatedUser = await User.findByIdAndUpdate(
+    disLikedBy,
+    {
+      likedSongs: allLikedSongs,
+    },
+    { new: true }
+  );
+
+  res.status(200).json({
+    success: true,
+    data: updatedUser,
+    msg: "Song Disliked successfully",
+  });
+});
+
+const likeSong = asyncHandler(async (req, res) => {
+  const { songId, likedBy } = req.body
+
+  if (!songId || !likedBy) {
+    res.status(400);
+    throw new Error(constant.REQUIRED_FIELD_TEXT);
+  }
+
+  const isUser = await User.findById(likedBy);
+  if (!isUser) {
+    res.status(400);
+    throw new Error(`User not found`);
+  }
+
+  let allLikedSongs = isUser?.likedSongs ? isUser?.likedSongs : [];
+  allLikedSongs.push(songId)
+
+  const updatedUser = await User.findByIdAndUpdate(
+    likedBy,
+    {
+      likedSongs: allLikedSongs,
+    },
+    { new: true }
+  );
+
+  res.status(200).json({
+    success: true,
+    data: updatedUser,
+    msg: "Song Liked successfully",
+  });
+});
+
+const followArtist = asyncHandler(async (req, res) => {
+  const { artistId, userId } = req.body
+
+  if (!artistId || !userId) {
+    res.status(400);
+    throw new Error(constant.REQUIRED_FIELD_TEXT);
+  }
+
+  const isUser = await User.findById(userId);
+  if (!isUser) {
+    res.status(400);
+    throw new Error(`User not found`);
+  }
+
+  const isArtist = await User.findById(artistId);
+  if (!isArtist) {
+    res.status(400);
+    throw new Error(`Artist not found`);
+  }
+
+  let allIFollowedArtist = isUser?.iFollow ? isUser?.iFollow : [];
+  allIFollowedArtist.push(artistId)
+
+  let followedArtist = isUser?.followMe ? isUser?.followMe : [];
+  followedArtist.push(userId)
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    {
+      iFollow: allIFollowedArtist
+    },
+    { new: true }
+  );
+
+  const updatedArtist = await User.findByIdAndUpdate(
+    artistId,
+    {
+      followMe: followedArtist
+    },
+    { new: true }
+  );
+
+  res.status(200).json({
+    success: true,
+    data: updatedUser,
+    updatedArtist: updatedArtist,
+    msg: "Artist Followed successfully",
+  });
+});
+
+const unFollowArtist = asyncHandler(async (req, res) => {
+  const { artistId, userId } = req.body
+
+  if (!artistId || !userId) {
+    res.status(400);
+    throw new Error(constant.REQUIRED_FIELD_TEXT);
+  }
+
+  const isUser = await User.findById(userId);
+  if (!isUser) {
+    res.status(400);
+    throw new Error(`User not found`);
+  }
+
+  const isArtist = await User.findById(artistId);
+  if (!isArtist) {
+    res.status(400);
+    throw new Error(`Artist not found`);
+  }
+
+  let allIFollowedArtist = isUser?.iFollow ? isUser?.iFollow : [];
+  let iFollowIndex = allIFollowedArtist.indexOf(artistId);
+
+  if (iFollowIndex !== -1) {
+    allIFollowedArtist.splice(iFollowIndex, 1);
+  }
+
+  let followedArtist = isUser?.followMe ? isUser?.followMe : [];
+  let followMeIndex = followedArtist.indexOf(userId);
+
+  if (followMeIndex !== -1) {
+    followedArtist.splice(followMeIndex, 1);
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    {
+      iFollow: allIFollowedArtist
+    },
+    { new: true }
+  );
+
+  const updatedArtist = await User.findByIdAndUpdate(
+    artistId,
+    {
+      followMe: followedArtist
+    },
+    { new: true }
+  );
+
+  res.status(200).json({
+    success: true,
+    data: updatedUser,
+    updatedArtist: updatedArtist,
+    msg: "Artist Un-Followed successfully",
   });
 });
 
@@ -170,6 +348,7 @@ const login = asyncHandler(async (req, res) => {
       profilePicture: user.profilePicture,
       followMe: user.followMe,
       iFollow: user.iFollow,
+      likedSongs: user?.likedSongs || [],
       accessToken: accessToken(user._id),
     };
     res
@@ -186,6 +365,10 @@ module.exports = {
   getArtist,
   addUser,
   updateUser,
+  likeSong,
+  followArtist,
+  unFollowArtist,
+  disLikeSong,
   deleteUser,
   login,
   updateUserPassword,

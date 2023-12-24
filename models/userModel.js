@@ -14,6 +14,7 @@ const UserSchema = mongoose.Schema(
     profilePicture: { type: String },
     iFollow: { type: Array },
     followMe: { type: Array },
+    likedSongs: { type: Array },
   },
   { timestamps: true }
 );

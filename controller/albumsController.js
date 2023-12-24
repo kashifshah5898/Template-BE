@@ -16,7 +16,7 @@ const getAlbums = asyncHandler(async (req, res) => {
     return;
   }
 
-  const albums = await Album.find();
+  const albums = await Album.find().populate('artist');;
   res.status(200).json({ success: true, data: albums });
 });
 
@@ -28,7 +28,7 @@ const getAlbumsByGenre = asyncHandler(async (req, res) => {
     throw new Error('Genre not found')
   }
 
-  const albums = await Album.find({ genre: genre });
+  const albums = await Album.find({ genre: genre }).populate('artist');;
 
   res.status(200).json({ success: true, data: albums });
 });
@@ -40,6 +40,8 @@ const addAlbum = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Please Fill all required fields");
   }
+
+
 
   const newAlbum = await Album.create({ title, cover_small, link, artist, duration, genre });
 
