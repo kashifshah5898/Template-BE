@@ -17,6 +17,19 @@ const getUsers = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: allUsers });
 });
 
+const getArtist = asyncHandler(async (req, res) => {
+  const { id } = req.query;
+
+  if (id) {
+    const myProfile = await User.findById(id).select("-password");
+    res.status(200).json({ success: true, data: myProfile });
+    return;
+  }
+
+  const allUsers = await User.find({ role: "artist" }).select("-password");
+  res.status(200).json({ success: true, data: allUsers });
+});
+
 const addUser = asyncHandler(async (req, res) => {
   const { name, email, password, dob } = req.body;
 
@@ -41,7 +54,8 @@ const addUser = asyncHandler(async (req, res) => {
     dob: dob,
     role: "user",
     profilePicture: "global.png",
-    following: [],
+    followMe: [],
+    iFollow: [],
   });
 
   res.status(200).json({ success: true, msg: "User created successfully" });
@@ -49,7 +63,8 @@ const addUser = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async (req, res) => {
   const { id } = req.query;
-  const { name, email, dob, role, profilePicture, following } = req.body;
+  const { name, email, dob, role, profilePicture, followMe, iFollow } =
+    req.body;
   if (!id) {
     res.status(400);
     throw new Error(constant.REQUIRED_FIELD_TEXT);
@@ -69,7 +84,8 @@ const updateUser = asyncHandler(async (req, res) => {
       dob: dob || isUser.dob,
       role: role || isUser.role,
       profilePicture: profilePicture || "global.png",
-      following: following || isUser.following,
+      followMe: followMe || isUser?.followMe || [],
+      followMe: iFollow || isUser?.followMe || [],
     },
     { new: true }
   );
@@ -81,7 +97,8 @@ const updateUser = asyncHandler(async (req, res) => {
     dob: updatedUser.dob,
     role: updatedUser.role,
     profilePicture: updatedUser.profilePicture,
-    following: updatedUser.following,
+    followMe: updatedUser.followMe,
+    iFollow: updatedUser.iFollow,
   };
 
   res.status(200).json({
@@ -151,7 +168,8 @@ const login = asyncHandler(async (req, res) => {
       dob: user.dob,
       role: user.role,
       profilePicture: user.profilePicture,
-      following: user.following,
+      followMe: user.followMe,
+      iFollow: user.iFollow,
       accessToken: accessToken(user._id),
     };
     res
@@ -165,6 +183,7 @@ const login = asyncHandler(async (req, res) => {
 
 module.exports = {
   getUsers,
+  getArtist,
   addUser,
   updateUser,
   deleteUser,

@@ -17,6 +17,7 @@ app.use(cors());
 
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/uploads", require("./routes/uploadRoutes"));
+app.use("/api/albums", require("./routes/albumsRoutes"));
 
 app.use("/api/assets", express.static("assets"));
 

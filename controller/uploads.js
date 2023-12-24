@@ -12,7 +12,7 @@ const uploadPicture = asyncHandler(async (req, res) => {
   if (fs.existsSync(filePath)) {
     res.status(200).json({
       success: false,
-      msg: "Picture with same name is already uploaded",
+      msg: "File with same name is already uploaded",
       fileName: filename,
     });
   }
@@ -20,7 +20,7 @@ const uploadPicture = asyncHandler(async (req, res) => {
   fs.writeFileSync(filePath, file.data, "binary");
   res.status(200).json({
     success: true,
-    msg: "Picture uploaded successfully",
+    msg: "File uploaded successfully",
     fileName: filename,
   });
 });
@@ -31,11 +31,11 @@ const deletePicture = asyncHandler(async (req, res) => {
   if (deletingPicture) {
     res
       .status(200)
-      .json({ success: true, msg: "Picture deleted successfully" });
+      .json({ success: true, msg: "File deleted successfully" });
   }
   res.status(200).json({
     success: false,
-    msg: "Picture you are trying to delete is not available",
+    msg: "File you are trying to delete is not available",
   });
 });
 

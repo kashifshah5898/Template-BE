@@ -12,9 +12,13 @@ const UserSchema = mongoose.Schema(
     dob: { type: String },
     role: { type: String, required: [true, "Role is required"] },
     profilePicture: { type: String },
-    following: { type: Array },
+    iFollow: { type: Array },
+    followMe: { type: Array },
   },
   { timestamps: true }
 );
 
 module.exports = mongoose.model("Users", UserSchema);
+
+// following -> iFollow
+// follower -> followMe
